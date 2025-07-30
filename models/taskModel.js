@@ -1,4 +1,5 @@
-const pool = require('../db');
+
+const pool = require('../db'); 
 
 exports.createTask = async (title, description, assignedTo) => {
   const res = await pool.query(
