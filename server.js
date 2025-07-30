@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const taskRoutes = require('./routes/taskRoutes');
-const { Pool } = require('pg'); // ✅ include pg
+const { Pool } = require('pg'); // 
 const app = express();
 
 // Middlewares
@@ -40,7 +40,7 @@ const createTable = async () => {
   }
 };
 
-createTable(); // 👈 make sure to call it
+createTable();
 
 // Basic root test route
 app.get("/", (req, res) => {
