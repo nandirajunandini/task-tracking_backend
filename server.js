@@ -1,57 +1,36 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const taskRoutes = require('./routes/taskRoutes');
-const { Pool } = require('pg'); // 
+const pool = require('./db'); // PostgreSQL connection pool
+
 const app = express();
 
-// Middlewares
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Route prefix
+// Routes
 app.use('/api', taskRoutes);
 
-// Connect to PostgreSQL
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false, // Required for Render PostgreSQL
-  },
-});
+const PORT = 5000; // Hardcoded since no .env
 
-// Create tasks table if not exists
-const createTable = async () => {
-  const query = `
-    CREATE TABLE IF NOT EXISTS tasks (
-      id SERIAL PRIMARY KEY,
-      title VARCHAR(255),
-      description TEXT,
-      assigned_to VARCHAR(100),
-      status VARCHAR(50) DEFAULT 'pending',
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `;
+// Start server and ensure DB table exists
+app.listen(PORT, async () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+
   try {
-    await pool.query(query);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL,
+        assigned_to VARCHAR(255) NOT NULL,
+        status VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
     console.log("✅ 'tasks' table is ready.");
   } catch (err) {
-    console.error("❌ Error creating table:", err);
+    console.error('❌ Error initializing DB:', err.message);
   }
-};
-
-createTable();
-
-// Basic root test route
-app.get("/", (req, res) => {
-  res.send("✅ Backend is working!");
 });
-
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
-
-// Make pool available to other files
-module.exports = { pool };
